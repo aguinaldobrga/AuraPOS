@@ -30,3 +30,14 @@ declare module '*.ico' {
   const value: string;
   export default value;
 }
+
+interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL: string;
+  readonly VITE_SUPABASE_ANON_KEY: string;
+  readonly VITE_DEFAULT_ADMIN_PIN: string;
+  readonly VITE_DEFAULT_ADMIN_NAME: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

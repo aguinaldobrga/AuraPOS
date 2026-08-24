@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { usePos } from '@/context/PosContext';
 import { Lock, Store, ArrowRight, AlertCircle } from 'lucide-react';
+import { hashPin } from '@/utils';
 
 interface PinLockScreenProps {
   onSuccess: () => void;
@@ -14,32 +15,42 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
 
   const activeUsers = users.filter(u => u.active);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    // 1. Validação de seleção de operador
     if (!selectedUserId) {
       setError('Selecione seu nome na lista.');
       return;
     }
 
+    // 2. Busca do operador ativo
     const user = activeUsers.find(u => u.id === selectedUserId);
-
     if (!user) {
       setError('Usuário não encontrado.');
       return;
     }
 
-    // Validação estrita do PIN
-    if (user.pin !== pin.trim()) {
-      setError('PIN incorreto. Tente novamente.');
-      setPin('');
-      return;
-    }
+    try {
+      // 3. Criptografa o PIN digitado para comparar com o hash salvo
+      const enteredPinHash = await hashPin(pin.trim());
 
-    // Autentica o usuário e libera o sistema
-    setCurrentUser(user);
-    setError('');
-    onSuccess();
+      if (user.pin !== enteredPinHash) {
+        setError('PIN incorreto. Tente novamente.');
+        setPin('');
+        return;
+      }
+
+      // 4. Libera a sessão
+      setCurrentUser(user);
+      setError('');
+      onSuccess();
+
+    } catch (err) {
+      console.error('[AuraPOS] Erro ao validar credenciais:', err);
+      setError('Erro interno ao validar o PIN.');
+      setPin('');
+    }
   };
 
   return (
