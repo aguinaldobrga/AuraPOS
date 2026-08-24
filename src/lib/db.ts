@@ -75,6 +75,11 @@ export async function deleteUserDB(id: string): Promise<void> {
   await db.delete('users', id);
 }
 
+export async function clearUsersDB(): Promise<void> {
+  const db = await getDB();
+  await db.clear('users');
+}
+
 // Métodos de Produtos
 export async function getAllProductsDB(): Promise<Product[]> {
   const db = await getDB();
@@ -89,6 +94,11 @@ export async function saveProductDB(product: Product): Promise<void> {
 export async function deleteProductDB(id: string): Promise<void> {
   const db = await getDB();
   await db.delete('products', id);
+}
+
+export async function clearProductsDB(): Promise<void> {
+  const db = await getDB();
+  await db.clear('products');
 }
 
 // Métodos de Vendas (com sanitização blindada do campo synced)
@@ -114,3 +124,4 @@ export async function updateSaleDB(sale: Sale): Promise<void> {
   };
   await db.put('sales', record as unknown as Sale);
 }
+

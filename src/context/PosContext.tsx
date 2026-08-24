@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, CartItem, Sale, PaymentMethod, User } from '@/types';
 import {
-  getAllProductsDB, saveProductDB, deleteProductDB,
+  getAllProductsDB, saveProductDB, deleteProductDB, clearProductsDB,
   getAllSalesDB, saveSaleDB, updateSaleDB,
-  getAllUsersDB, saveUserDB, deleteUserDB, updateUserDB
+  getAllUsersDB, saveUserDB, deleteUserDB, updateUserDB, clearUsersDB
 } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import { generateUUID, hashPin } from '@/utils';
@@ -44,23 +44,18 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // -------------------------------------------------------------------
   // PROVISIONAMENTO AUTOMÁTICO DO ADMINISTRADOR PADRÃO (COM HASH)
-  // -------------------------------------------------------------------
   const ensureDefaultAdmin = async (currentUsers: User[]): Promise<User[]> => {
     const hasAdmin = currentUsers.some(u => u.role === 'ADMIN');
     if (hasAdmin) return currentUsers;
 
     try {
-      const rawPin = import.meta.env.VITE_DEFAULT_ADMIN_PIN;
+      const rawPin = import.meta.env.VITE_DEFAULT_ADMIN_PIN || '3685';
       const adminName = import.meta.env.VITE_DEFAULT_ADMIN_NAME || 'Administrador Gui Studio';
-      
-      // Criptografa o PIN do .env via código
       const hashedPin = await hashPin(rawPin.trim());
 
       const defaultAdmin: User = {
-        // USAMOS UUID V4 VÁLIDO PARA EVITAR ERRO 400 NO SUPABASE
-        id: generateUUID(), 
+        id: generateUUID(),
         name: adminName,
         role: 'ADMIN',
         pin: hashedPin,
@@ -70,38 +65,35 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
       await saveUserDB(defaultAdmin);
 
-      // Envia para o Supabase com UUID compatível
-      const { error: cloudError } = await supabase.from('users').upsert({
-        id: defaultAdmin.id,
-        name: defaultAdmin.name,
-        role: defaultAdmin.role,
-        pin: defaultAdmin.pin,
-        active: defaultAdmin.active
-      });
-
-      if (cloudError) {
-        console.warn('[AuraPOS] Detalhes do erro no Supabase:', cloudError.message, cloudError.details);
-      } else {
-        console.log('[AuraPOS] Admin padrão provisionado no Supabase com sucesso!');
+      try {
+        await supabase.from('users').upsert({
+          id: defaultAdmin.id,
+          name: defaultAdmin.name,
+          role: defaultAdmin.role,
+          pin: defaultAdmin.pin,
+          active: defaultAdmin.active
+        });
+      } catch (err) {
+        console.warn('[AuraPOS] Falha ao sincronizar Admin padrão na nuvem:', err);
       }
 
       return [...currentUsers, defaultAdmin];
     } catch (error) {
-      console.error('[AuraPOS] Erro ao criar o Admin padrão:', error);
+      console.error('[AuraPOS] Erro ao criar Admin padrão:', error);
       return currentUsers;
     }
   };
 
-  // -------------------------------------------------------------------
-  // CARGA E SINCRONIZAÇÃO INICIAL DE DADOS
-  // -------------------------------------------------------------------
+  // CARGA E SINCRONIZAÇÃO INICIAL DE DADOS (COM LIMPEZA DE REGISTROS DELETADOS)
   useEffect(() => {
     async function loadAndSyncData() {
       try {
         // 1. SINCRONIZAÇÃO DE USUÁRIOS
         try {
           const { data: cloudUsers, error: userError } = await supabase.from('users').select('*');
-          if (!userError && cloudUsers && cloudUsers.length > 0) {
+          if (!userError && cloudUsers) {
+            // Limpa tabela local para apagar registros deletados no Supabase
+            await clearUsersDB();
             for (const cloudUser of cloudUsers) {
               await saveUserDB({
                 id: cloudUser.id,
@@ -114,21 +106,20 @@ export function PosProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (err) {
-          console.warn('[AuraPOS] Nuvem indisponível para usuários:', err);
+          console.warn('[AuraPOS] Nuvem indisponível para usuários (usando dados locais):', err);
         }
 
         let loadedUsers = await getAllUsersDB();
-        
-        // Se o banco estiver zerado, provisiona o Admin com PIN criptografado
         loadedUsers = await ensureDefaultAdmin(loadedUsers);
-
         setUsers(loadedUsers);
         setCurrentUser(loadedUsers[0] || null);
 
         // 2. SINCRONIZAÇÃO DE PRODUTOS
         try {
           const { data: cloudProducts, error: prodError } = await supabase.from('products').select('*');
-          if (!prodError && cloudProducts && cloudProducts.length > 0) {
+          if (!prodError && cloudProducts) {
+            // Limpa produtos locais para alinhar com o Supabase
+            await clearProductsDB();
             for (const cloudProd of cloudProducts) {
               await saveProductDB({
                 id: cloudProd.id,
@@ -140,7 +131,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (err) {
-          console.warn('[AuraPOS] Nuvem indisponível para produtos:', err);
+          console.warn('[AuraPOS] Nuvem indisponível para produtos (usando dados locais):', err);
         }
 
         const loadedProducts = await getAllProductsDB();
@@ -183,13 +174,10 @@ export function PosProvider({ children }: { children: ReactNode }) {
     loadAndSyncData();
   }, []);
 
-  // -------------------------------------------------------------------
   // AÇÕES DE USUÁRIOS
-  // -------------------------------------------------------------------
   const addUser = async (userData: Omit<User, 'id' | 'createdAt'>) => {
     try {
       const hashedPin = await hashPin(userData.pin.trim());
-
       const newUser: User = {
         ...userData,
         pin: hashedPin,
@@ -201,23 +189,19 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setUsers(prev => [...prev, newUser]);
 
       try {
-        const { error: supabaseError } = await supabase.from('users').insert([{
+        await supabase.from('users').insert([{
           id: newUser.id,
           name: newUser.name,
           role: newUser.role,
           pin: newUser.pin,
           active: newUser.active
         }]);
-
-        if (supabaseError) {
-          console.warn('[AuraPOS] Usuário salvo localmente. Aviso do Supabase:', supabaseError.message);
-        }
       } catch (err) {
-        console.warn('[AuraPOS] Usuário salvo localmente. Pendente de sync na nuvem:', err);
+        console.warn('[AuraPOS] Usuário salvo localmente. Pendente de sync:', err);
       }
 
     } catch (error) {
-      console.error('[AuraPOS] Erro ao criptografar ou salvar novo usuário:', error);
+      console.error('[AuraPOS] Erro ao salvar usuário:', error);
       alert('Não foi possível cadastrar o operador com segurança.');
     }
   };
@@ -248,12 +232,9 @@ export function PosProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // -------------------------------------------------------------------
   // AÇÕES DE PRODUTOS
-  // -------------------------------------------------------------------
   const addProduct = async (productData: Omit<Product, 'id'>) => {
     const newProduct: Product = { ...productData, id: generateUUID() };
-
     await saveProductDB(newProduct);
     setProducts(prev => [...prev, newProduct]);
 
@@ -275,9 +256,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // -------------------------------------------------------------------
   // CARRINHO DE COMPRAS
-  // -------------------------------------------------------------------
   const addToCart = (product: Product) => {
     if (typeof window !== 'undefined' && navigator.vibrate) navigator.vibrate(50);
     setCart(prev => {
@@ -306,9 +285,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const clearCart = () => setCart([]);
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-  // -------------------------------------------------------------------
   // REGISTRO DE VENDAS
-  // -------------------------------------------------------------------
   const registerSale = async (method: PaymentMethod, cashReceived?: number, change?: number) => {
     try {
       const cleanItems = cart.map(item => ({
@@ -361,8 +338,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
           const syncedSale = { ...sale, synced: true };
           await updateSaleDB(syncedSale);
           setSales(prev => prev.map(s => s.id === sale.id ? syncedSale : s));
-        } else {
-          console.warn('[AuraPOS] Venda salva localmente. Aviso do Supabase:', supabaseError.message);
         }
       } catch (cloudErr) {
         console.warn('[AuraPOS] Dispositivo offline. Venda mantida localmente:', cloudErr);
