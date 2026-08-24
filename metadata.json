@@ -1,0 +1,10 @@
+{
+  "name": "AuraPOS",
+  "version": "0.1.0",
+  "description": "Ponto de Venda Mobile-First para feirantes e expositores.",
+  "author": "Gui studio / Aguinaldo braga",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
