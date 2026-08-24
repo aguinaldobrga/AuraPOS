@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/react" />
 
 // Declaração explicita para arquivos de imagem
 declare module '*.png' {

@@ -9,6 +9,7 @@ import { UserAdmin } from '@/components/UserAdmin';
 import { AdminPinModal } from '@/components/AdminPinModal';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { Package, Users, LogOut } from 'lucide-react';
+import { ReloadPrompt } from '@/components/ReloadPrompt';
 
 function MainLayout() {
   const { isLoading, currentUser, setCurrentUser } = usePos();
@@ -155,6 +156,7 @@ export default function App() {
   return (
     <PosProvider>
       <MainLayout />
+      <ReloadPrompt />
     </PosProvider>
   );
 }
