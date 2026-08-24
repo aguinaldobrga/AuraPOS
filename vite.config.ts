@@ -11,6 +11,7 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        injectRegister: 'auto',
         manifest: {
           name: 'AuraPOS',
           short_name: 'Aura',
@@ -20,12 +21,12 @@ export default defineConfig(() => {
           display: 'standalone',
           icons: [
             {
-              src: '/icon-192x192.png',
+              src: 'icon-192x192.png',
               sizes: '192x192',
               type: 'image/png',
             },
             {
-              src: '/icon-512x512.png',
+              src: 'icon-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any maskable',
@@ -40,6 +41,24 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+      },
+    },
+    build: {
+      chunkSizeWarningLimit: 800,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('jspdf') || id.includes('jspdf-autotable')) {
+              return 'pdf-vendor';
+            }
+            if (id.includes('@supabase')) {
+              return 'supabase-vendor';
+            }
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          },
+        },
       },
     },
     server: {
