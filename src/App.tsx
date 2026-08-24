@@ -10,6 +10,7 @@ import { AdminPinModal } from '@/components/AdminPinModal';
 import { PinLockScreen } from '@/components/PinLockScreen';
 import { Package, Users, LogOut } from 'lucide-react';
 import { ReloadPrompt } from '@/components/ReloadPrompt';
+import { DemoLockGate } from '@/components/DemoLockGate';
 
 function MainLayout() {
   const { isLoading, currentUser, setCurrentUser } = usePos();
@@ -155,8 +156,10 @@ function MainLayout() {
 export default function App() {
   return (
     <PosProvider>
-      <MainLayout />
-      <ReloadPrompt />
+      <DemoLockGate>
+        <MainLayout />
+        <ReloadPrompt />
+      </DemoLockGate>
     </PosProvider>
   );
 }
