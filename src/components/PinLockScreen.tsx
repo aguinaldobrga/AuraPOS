@@ -54,8 +54,8 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0D1117]">
-      <div className="w-full max-w-md bg-[#161B22] border border-slate-800 rounded-3xl p-8 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-main">
+      <div className="w-full max-w-md bg-surface border border-slate-800 rounded-3xl p-8 shadow-2xl relative">
         <div className="flex flex-col items-center text-center mb-8">
           <div className="p-4 bg-teal-500/10 text-teal-400 rounded-2xl mb-4 border border-teal-500/20">
             <Store size={32} />
@@ -76,13 +76,13 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
                 setSelectedUserId(e.target.value);
                 if (error) setError('');
               }}
-              className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-3 px-4 text-slate-100 focus:outline-none focus:border-teal-500 transition-colors cursor-pointer"
+              className="w-full bg-main border border-slate-800 rounded-xl py-3 px-4 text-slate-100 focus:outline-none focus:border-teal-500 transition-colors cursor-pointer"
             >
-              <option value="" disabled className="bg-[#161B22] text-slate-400">
+              <option value="" disabled className="bg-surface text-slate-400">
                 Selecione seu perfil...
               </option>
               {activeUsers.map(u => (
-                <option key={u.id} value={u.id} className="bg-[#161B22] text-slate-100">
+                <option key={u.id} value={u.id} className="bg-surface text-slate-100">
                   {u.name} ({u.role === 'ADMIN' ? 'Administrador' : 'Operador'})
                 </option>
               ))}
@@ -104,7 +104,7 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
                   if (error) setError('');
                 }}
                 placeholder="••••"
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-3.5 px-4 text-center text-2xl tracking-widest text-slate-100 focus:outline-none focus:border-teal-500 transition-colors"
+                className="w-full bg-main border border-slate-800 rounded-xl py-3.5 px-4 text-center text-2xl tracking-widest text-slate-100 focus:outline-none focus:border-teal-500 transition-colors"
               />
               <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
             </div>

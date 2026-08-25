@@ -53,7 +53,7 @@ export function ProductAdmin() {
       </h2>
 
       {/* Formulário de Cadastro */}
-      <div className="bg-[#161B22] border border-slate-800 p-6 rounded-2xl mb-8 shadow-xl">
+      <div className="bg-main border border-slate-800 p-6 rounded-2xl mb-8 shadow-xl">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">
@@ -65,7 +65,7 @@ export function ProductAdmin() {
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Ex: Coca-Cola 350ml"
-              className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500"
+              className="w-full bg-main border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500"
             />
           </div>
 
@@ -80,7 +80,7 @@ export function ProductAdmin() {
               value={price}
               onChange={e => setPrice(e.target.value)}
               placeholder="0,00"
-              className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500"
+              className="w-full bg-main border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500"
             />
           </div>
 
@@ -106,16 +106,16 @@ export function ProductAdmin() {
                 value={customCategory}
                 onChange={e => setCustomCategory(e.target.value)}
                 placeholder="Digite a nova categoria..."
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500"
+                className="w-full bg-main border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500"
               />
             ) : (
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500 cursor-pointer"
+                className="w-full bg-main border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500 cursor-pointer"
               >
                 {availableCategories.map(cat => (
-                  <option key={cat} value={cat} className="bg-[#161B22]">
+                  <option key={cat} value={cat} className="bg-surface">
                     {cat}
                   </option>
                 ))}
@@ -135,7 +135,7 @@ export function ProductAdmin() {
                   onClick={() => setColor(c)}
                   style={{ backgroundColor: c }}
                   className={`w-7 h-7 rounded-full transition-transform ${
-                    color === c ? 'scale-125 ring-2 ring-white ring-offset-2 ring-offset-[#161B22]' : 'opacity-70 hover:opacity-100'
+                    color === c ? 'scale-125 ring-2 ring-white ring-offset-2 ring-offset-surface' : 'opacity-70 hover:opacity-100'
                   }`}
                 />
               ))}
@@ -159,7 +159,7 @@ export function ProductAdmin() {
         {products.map(product => (
           <div
             key={product.id}
-            className="bg-[#161B22] border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4"
+            className="bg-surface border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4"
           >
             <div className="flex items-center gap-3">
               <div

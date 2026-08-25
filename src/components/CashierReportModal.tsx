@@ -45,7 +45,7 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
     const cleanPin = pin.trim();
     const hashedInputPin = await hashPin(cleanPin);
 
-    // Validação estrita com suporte a hash SHA-256 e fallback para registros antigos
+    // Validação estrita com suporte a hash SHA-256 e fallback
     const isPinValid = 
       selectedOperator.pin === hashedInputPin || 
       selectedOperator.pin === cleanPin;
@@ -68,49 +68,49 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-[#161B22] border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-surface border border-line w-full max-w-md rounded-2xl p-6 shadow-2xl relative text-txt-primary">
         <button
           onClick={handleClose}
           type="button"
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-lg transition-colors cursor-pointer"
+          className="absolute top-4 right-4 text-txt-secondary hover:text-txt-primary p-2 rounded-lg transition-colors cursor-pointer"
         >
           <X size={20} />
         </button>
 
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-teal-500/10 text-teal-400 rounded-xl">
+          <div className="p-3 bg-primary/10 text-primary rounded-xl">
             <FileText size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-slate-100">Emitir Relatório</h3>
-            <p className="text-sm text-slate-400">Autenticação obrigatória de operador</p>
+            <h3 className="text-xl font-bold text-txt-primary">Emitir Relatório</h3>
+            <p className="text-sm text-txt-secondary">Autenticação obrigatória de operador</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-txt-secondary mb-2">
               Identificação do Caixa
             </label>
             <div className="relative">
-              <Store size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Store size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-secondary" />
               <input
                 type="text"
                 value={cashierPrefix}
                 onChange={e => setCashierPrefix(e.target.value)}
                 placeholder="Ex: Caixa 01, Estande Central"
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-100 focus:outline-none focus:border-teal-500 transition-colors"
+                className="w-full bg-main border border-line rounded-xl py-3 pl-10 pr-4 text-txt-primary focus:outline-none focus:border-primary transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-              Operador Autorizado <span className="text-teal-400">*</span>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-txt-secondary mb-2">
+              Operador Autorizado <span className="text-primary">*</span>
             </label>
             <div className="relative">
-              <UserCheck size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+              <UserCheck size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-secondary pointer-events-none" />
               <select
                 required
                 value={selectedUserId}
@@ -118,13 +118,13 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
                   setSelectedUserId(e.target.value);
                   if (error) setError('');
                 }}
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-100 focus:outline-none focus:border-teal-500 transition-colors cursor-pointer"
+                className="w-full bg-main border border-line rounded-xl py-3 pl-10 pr-4 text-txt-primary focus:outline-none focus:border-primary transition-colors cursor-pointer"
               >
-                <option value="" disabled className="bg-[#161B22] text-slate-400">
+                <option value="" disabled className="bg-surface text-txt-secondary">
                   Selecione seu nome na lista...
                 </option>
                 {activeUsers.map(user => (
-                  <option key={user.id} value={user.id} className="bg-[#161B22] text-slate-100">
+                  <option key={user.id} value={user.id} className="bg-surface text-txt-primary">
                     {user.name} ({user.role === 'ADMIN' ? 'Admin' : 'Operador'})
                   </option>
                 ))}
@@ -133,11 +133,11 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-              PIN do Operador <span className="text-teal-400">*</span>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-txt-secondary mb-2">
+              PIN do Operador <span className="text-primary">*</span>
             </label>
             <div className="relative">
-              <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-secondary" />
               <input
                 type="password"
                 required
@@ -148,7 +148,7 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
                   if (error) setError('');
                 }}
                 placeholder="••••"
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-slate-100 tracking-widest focus:outline-none focus:border-teal-500 transition-colors"
+                className="w-full bg-main border border-line rounded-xl py-3 pl-10 pr-4 text-txt-primary tracking-widest focus:outline-none focus:border-primary transition-colors"
               />
             </div>
             {error && <p className="text-xs text-rose-400 mt-1.5 font-medium">{error}</p>}
@@ -158,13 +158,13 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-3 px-4 rounded-xl border border-slate-800 text-slate-300 font-medium hover:bg-slate-800/50 transition-colors cursor-pointer"
+              className="flex-1 py-3 px-4 rounded-xl border border-line text-txt-secondary font-medium hover:bg-line/50 transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 px-4 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold transition-colors shadow-lg active:scale-95 cursor-pointer"
+              className="flex-1 py-3 px-4 rounded-xl bg-primary text-black font-bold hover:bg-primary/90 transition-colors shadow-lg active:scale-95 cursor-pointer"
             >
               Confirmar e Gerar
             </button>

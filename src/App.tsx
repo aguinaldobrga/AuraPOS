@@ -31,7 +31,7 @@ function MainLayout() {
   // 1. Tela de Carregamento Inicial do Banco de Dados
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0D1117] flex items-center justify-center text-slate-400 font-medium">
+      <div className="min-h-screen bg-main flex items-center justify-center text-slate-400 font-medium">
         Inicializando o AuraPOS...
       </div>
     );
@@ -62,9 +62,9 @@ function MainLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] flex flex-col antialiased">
+    <div className="min-h-screen bg-(--bg-main) flex-col antialiased">
       {/* Topo da Aplicação com Indicador e Botão de Bloqueio */}
-      <div className="bg-[#161B22] border-b border-slate-800 px-4 py-2 flex justify-between items-center text-xs">
+      <div className="bg-surface border-b border-slate-800 px-4 py-2 flex justify-between items-center text-xs">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
           <span className="text-slate-400">
@@ -115,7 +115,7 @@ function MainLayout() {
                 className={`flex-1 py-2.5 px-4 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors ${
                   adminSubTab === 'products'
                     ? 'bg-teal-600 text-white shadow-lg'
-                    : 'bg-[#161B22] text-slate-400 hover:text-white border border-slate-800'
+                    : 'bg-surface text-slate-400 hover:text-white border border-slate-800'
                 }`}
               >
                 <Package size={18} />
@@ -127,7 +127,7 @@ function MainLayout() {
                 className={`flex-1 py-2.5 px-4 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors ${
                   adminSubTab === 'users'
                     ? 'bg-teal-600 text-white shadow-lg'
-                    : 'bg-[#161B22] text-slate-400 hover:text-white border border-slate-800'
+                    : 'bg-surface text-slate-400 hover:text-white border border-slate-800'
                 }`}
               >
                 <Users size={18} />

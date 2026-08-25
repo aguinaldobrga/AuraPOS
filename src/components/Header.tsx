@@ -12,9 +12,9 @@ export function Header({ activeTab, setActiveTab }: HeaderProps) {
   const isAdmin = currentUser?.role === 'ADMIN';
 
   return (
-    <header className="sticky top-0 z-40 flex items-center justify-between p-4 bg-[var(--bg-overlay)] backdrop-blur-md border-b border-[var(--border-color)]">
+    <header className="sticky top-0 z-40 flex items-center justify-between p-4 bg-(--bg-overlay) backdrop-blur-md border-b border-(--border-color)">
       {/* Logo e Nome da Aplicação */}
-      <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold text-lg">
+      <div className="flex items-center gap-2 text-(--text-primary) font-bold text-lg">
         <img src={LOGO} alt="Logo AuraPOS" className="w-10 h-10 object-contain" />
         <span className="tracking-tight">AuraPOS</span>
       </div>
@@ -28,7 +28,7 @@ export function Header({ activeTab, setActiveTab }: HeaderProps) {
           className={`p-2.5 rounded-xl transition-colors ${
             activeTab === 'pdv' 
               ? 'text-teal-400 bg-teal-500/10 border border-teal-500/20' 
-              : 'text-[var(--text-secondary)] hover:text-slate-100'
+              : 'text-(--text-secondary) hover:text-slate-100'
           }`}
         >
           <ShoppingBag size={22} />
@@ -41,7 +41,7 @@ export function Header({ activeTab, setActiveTab }: HeaderProps) {
           className={`p-2.5 rounded-xl transition-colors ${
             activeTab === 'history' 
               ? 'text-teal-400 bg-teal-500/10 border border-teal-500/20' 
-              : 'text-[var(--text-secondary)] hover:text-slate-100'
+              : 'text-(--text-secondary)r:text-slate-100'
           }`}
         >
           <History size={22} />
@@ -56,7 +56,7 @@ export function Header({ activeTab, setActiveTab }: HeaderProps) {
             className={`p-2.5 rounded-xl transition-colors ${
               activeTab === 'admin' 
                 ? 'text-teal-400 bg-teal-500/10 border border-teal-500/20' 
-                : 'text-[var(--text-secondary)] hover:text-slate-100'
+                : 'text-(--text-secondary) hover:text-slate-100'
             }`}
           >
             <Settings size={22} />

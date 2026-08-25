@@ -38,7 +38,7 @@ export function ProductGrid() {
             key={product.id}
             onClick={() => addToCart(product)}
             style={{ borderColor: `${product.color}40` }}
-            className="group relative bg-[#161B22] border rounded-2xl p-4 flex flex-col justify-between text-left transition-all active:scale-95 hover:border-teal-500/50 shadow-md"
+            className="group relative bg-surface border rounded-2xl p-4 flex flex-col justify-between text-left transition-all active:scale-95 hover:border-teal-500/50 shadow-md"
           >
             {/* Indicador sutil de cor da categoria */}
             <div

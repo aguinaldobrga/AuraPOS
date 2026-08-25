@@ -33,7 +33,7 @@ export function UserAdmin() {
       </h2>
 
       {/* Form de Cadastro */}
-      <div className="bg-[#161B22] border border-slate-800 p-6 rounded-2xl mb-8 shadow-xl">
+      <div className="bg-surface border border-slate-800 p-6 rounded-2xl mb-8 shadow-xl">
         <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
           <UserPlus size={20} className="text-teal-400" />
           <span>Cadastrar Novo Operador</span>
@@ -50,7 +50,7 @@ export function UserAdmin() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Ex: João Silva"
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-slate-100 focus:outline-none focus:border-teal-500"
+                className="w-full bg-main border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-slate-100 focus:outline-none focus:border-teal-500"
               />
             </div>
           </div>
@@ -66,7 +66,7 @@ export function UserAdmin() {
                 value={pin}
                 onChange={e => setPin(e.target.value)}
                 placeholder="••••"
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-slate-100 focus:outline-none focus:border-teal-500 tracking-widest"
+                className="w-full bg-main border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-slate-100 focus:outline-none focus:border-teal-500 tracking-widest"
               />
             </div>
           </div>
@@ -76,7 +76,7 @@ export function UserAdmin() {
             <select
               value={role}
               onChange={e => setRole(e.target.value as UserRole)}
-              className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500 cursor-pointer"
+              className="w-full bg-main border border-slate-800 rounded-xl py-2.5 px-4 text-slate-100 focus:outline-none focus:border-teal-500 cursor-pointer"
             >
               <option value="OPERATOR">Operador de Caixa</option>
               <option value="ADMIN">Administrador</option>
@@ -100,7 +100,7 @@ export function UserAdmin() {
         {users.map(user => (
           <div
             key={user.id}
-            className="bg-[#161B22] border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4"
+            className="bg-surface border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-4"
           >
             <div className="flex items-center gap-3">
               <div className={`p-2.5 rounded-xl ${user.role === 'ADMIN' ? 'bg-amber-500/10 text-amber-400' : 'bg-teal-500/10 text-teal-400'}`}>

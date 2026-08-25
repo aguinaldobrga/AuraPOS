@@ -42,7 +42,7 @@ export function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinModalProps
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#161B22] border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl relative">
+      <div className="bg-surface border border-slate-800 w-full max-w-sm rounded-2xl p-6 shadow-2xl relative">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg"
@@ -71,7 +71,7 @@ export function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinModalProps
                   if (error) setError('');
                 }}
                 placeholder="••••"
-                className="w-full bg-[#0D1117] border border-slate-800 rounded-xl py-3 px-4 text-center text-xl tracking-widest text-slate-100 focus:outline-none focus:border-teal-500"
+                className="w-full bg-main border border-slate-800 rounded-xl py-3 px-4 text-center text-xl tracking-widest text-slate-100 focus:outline-none focus:border-teal-500"
               />
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
             </div>

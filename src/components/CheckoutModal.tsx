@@ -26,54 +26,82 @@ export function CheckoutModal({ onClose }: { onClose: () => void }) {
 
   if (success) {
     return (
-      <div className="fixed inset-0 z-[60] bg-[var(--bg-main)] flex flex-col items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 bg-main flex flex-col items-center justify-center p-4">
         <CheckCircle2 size={80} className="text-success mb-4" />
-        <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">Venda Concluída!</h2>
+        <h2 className="text-3xl font-bold text-txt-primary mb-2">Venda Concluída!</h2>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-[var(--bg-main)] flex flex-col">
-      <div className="p-4 flex items-center border-b border-[var(--border-color)]">
-        <button onClick={() => method ? setMethod(null) : onClose()} className="p-2 -ml-2 text-[var(--text-secondary)]">
+    <div className="fixed inset-0 z-50 bg-main flex flex-col">
+      {/* Cabeçalho */}
+      <div className="p-4 flex items-center border-b border-line bg-main">
+        <button 
+          type="button"
+          onClick={() => (method ? setMethod(null) : onClose())} 
+          className="p-2 -ml-2 text-txt-secondary hover:text-txt-primary cursor-pointer transition-colors"
+        >
           <ArrowLeft size={24} />
         </button>
-        <h2 className="text-xl font-bold text-[var(--text-primary)] ml-2">Pagamento</h2>
+        <h2 className="text-xl font-bold text-txt-primary ml-2">Pagamento</h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center">
+      {/* Conteúdo do Modal */}
+      <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center bg-main">
         <div className="text-center mb-8 mt-4">
-          <div className="text-[var(--text-secondary)] mb-1">Total a Pagar</div>
-          <div className="text-5xl font-bold text-[var(--text-primary)]">{formatCurrency(cartTotal)}</div>
+          <div className="text-txt-secondary mb-1">Total a Pagar</div>
+          <div className="text-5xl font-bold text-txt-primary">{formatCurrency(cartTotal)}</div>
         </div>
 
         {!method && (
           <div className="w-full max-w-md space-y-4">
-            <button onClick={() => setMethod('PIX')} className="w-full flex items-center p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl active:scale-95 transition-transform">
+            <button 
+              type="button"
+              onClick={() => setMethod('PIX')} 
+              className="w-full flex items-center p-6 bg-surface border border-line rounded-2xl active:scale-95 transition-transform cursor-pointer"
+            >
               <QrCode size={32} className="text-primary mr-4" />
-              <span className="text-xl font-bold text-[var(--text-primary)]">Pix</span>
+              <span className="text-xl font-bold text-txt-primary">Pix</span>
             </button>
-            <button onClick={() => setMethod('CARTAO')} className="w-full flex items-center p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl active:scale-95 transition-transform">
-              <CreditCard size={32} className="text-[#3b82f6] mr-4" />
-              <span className="text-xl font-bold text-[var(--text-primary)]">Cartão (Débito/Crédito)</span>
+
+            <button 
+              type="button"
+              onClick={() => setMethod('CARTAO')} 
+              className="w-full flex items-center p-6 bg-surface border border-line rounded-2xl active:scale-95 transition-transform cursor-pointer"
+            >
+              <CreditCard size={32} className="text-blue-500 mr-4" />
+              <span className="text-xl font-bold text-txt-primary">Cartão (Débito/Crédito)</span>
             </button>
-            <button onClick={() => setMethod('DINHEIRO')} className="w-full flex items-center p-6 bg-[var(--bg-surface)] border border-[var(--border-color)] rounded-2xl active:scale-95 transition-transform">
+
+            <button 
+              type="button"
+              onClick={() => setMethod('DINHEIRO')} 
+              className="w-full flex items-center p-6 bg-surface border border-line rounded-2xl active:scale-95 transition-transform cursor-pointer"
+            >
               <Banknote size={32} className="text-success mr-4" />
-              <span className="text-xl font-bold text-[var(--text-primary)]">Dinheiro</span>
+              <span className="text-xl font-bold text-txt-primary">Dinheiro</span>
             </button>
           </div>
         )}
 
         {method === 'PIX' && (
           <div className="flex flex-col items-center w-full max-w-md">
-            <div className="bg-white p-4 rounded-xl mb-6">
-              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PIX-${cartTotal}`} alt="QR Code Pix" className="w-48 h-48" />
+            <div className="bg-white p-4 rounded-xl mb-6 shadow-md">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PIX-${cartTotal}`} 
+                alt="QR Code Pix" 
+                className="w-48 h-48" 
+              />
             </div>
-            <div className="text-[var(--text-secondary)] text-center mb-8">
-              Escaneie o QR Code para pagar.<br/>Confirme o recebimento no seu app do banco.
+            <div className="text-txt-secondary text-center mb-8">
+              Escaneie o QR Code para pagar.<br />Confirme o recebimento no seu app do banco.
             </div>
-            <button onClick={handleFinish} className="w-full bg-primary text-black font-bold text-xl py-4 rounded-xl active:scale-[0.98]">
+            <button 
+              type="button"
+              onClick={handleFinish} 
+              className="w-full bg-primary text-black font-bold text-xl py-4 rounded-xl active:scale-[0.98] cursor-pointer shadow-lg"
+            >
               Confirmar Recebimento
             </button>
           </div>
@@ -81,11 +109,15 @@ export function CheckoutModal({ onClose }: { onClose: () => void }) {
 
         {method === 'CARTAO' && (
           <div className="flex flex-col items-center w-full max-w-md mt-10">
-            <CreditCard size={64} className="text-[var(--text-secondary)] mb-6 opacity-50" />
-            <div className="text-[var(--text-primary)] text-xl text-center mb-8">
+            <CreditCard size={64} className="text-txt-secondary mb-6 opacity-50" />
+            <div className="text-txt-primary text-xl text-center mb-8">
               Passe o cartão ou aproxime na maquininha.
             </div>
-            <button onClick={handleFinish} className="w-full bg-primary text-black font-bold text-xl py-4 rounded-xl active:scale-[0.98]">
+            <button 
+              type="button"
+              onClick={handleFinish} 
+              className="w-full bg-primary text-black font-bold text-xl py-4 rounded-xl active:scale-[0.98] cursor-pointer shadow-lg"
+            >
               Pagamento Aprovado
             </button>
           </div>
@@ -94,12 +126,12 @@ export function CheckoutModal({ onClose }: { onClose: () => void }) {
         {method === 'DINHEIRO' && (
           <div className="w-full max-w-md flex flex-col h-full">
             <div className="mb-6">
-              <label className="text-[var(--text-secondary)] block mb-2">Valor Recebido</label>
+              <label className="text-txt-secondary block mb-2 font-medium">Valor Recebido</label>
               <input 
                 type="number" 
                 value={cashReceived}
                 onChange={(e) => setCashReceived(e.target.value)}
-                className="w-full bg-[var(--bg-surface)] border border-[var(--border-color)] text-[var(--text-primary)] text-3xl p-4 rounded-xl text-center focus:outline-none focus:border-primary font-bold"
+                className="w-full bg-surface border border-line text-txt-primary text-3xl p-4 rounded-xl text-center focus:outline-none focus:border-primary font-bold"
                 placeholder="0.00"
                 autoFocus
               />
@@ -110,26 +142,27 @@ export function CheckoutModal({ onClose }: { onClose: () => void }) {
               if (!isNaN(received) && received >= cartTotal) {
                 const change = received - cartTotal;
                 return (
-                  <div className="mb-8 p-4 bg-[var(--bg-surface)] rounded-xl border border-[var(--border-color)] text-center">
-                    <div className="text-[var(--text-secondary)] mb-1">Troco a devolver</div>
+                  <div className="mb-8 p-4 bg-surface rounded-xl border border-line text-center">
+                    <div className="text-txt-secondary mb-1">Troco a devolver</div>
                     <div className="text-4xl font-bold text-accent">{formatCurrency(change)}</div>
                   </div>
                 );
               } else if (!isNaN(received) && received > 0 && received < cartTotal) {
                 return (
-                  <div className="mb-8 p-4 text-center text-red-500">
+                  <div className="mb-8 p-4 text-center text-rose-500 font-medium">
                     Valor insuficiente
                   </div>
-                )
+                );
               }
               return null;
             })()}
 
             <div className="mt-auto pb-4">
               <button 
+                type="button"
                 onClick={handleFinish} 
                 disabled={!cashReceived || parseFloat(cashReceived.replace(',', '.')) < cartTotal}
-                className="w-full bg-primary text-black font-bold text-xl py-4 rounded-xl active:scale-[0.98] disabled:opacity-50"
+                className="w-full bg-primary text-black font-bold text-xl py-4 rounded-xl active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg"
               >
                 Finalizar Venda
               </button>

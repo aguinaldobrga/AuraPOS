@@ -18,7 +18,7 @@ export function CategoryFilter({
         className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all snap-start flex items-center gap-1.5 active:scale-95 ${
           selectedCategory === 'TODAS'
             ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/20 font-semibold'
-            : 'bg-[#161B22] text-slate-400 hover:text-slate-200 border border-slate-800'
+            : 'bg-surface text-slate-400 hover:text-slate-200 border border-slate-800'
         }`}
       >
         <Tag size={14} />
@@ -32,7 +32,7 @@ export function CategoryFilter({
           className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all snap-start active:scale-95 ${
             selectedCategory === category
               ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/20 font-semibold'
-              : 'bg-[#161B22] text-slate-400 hover:text-slate-200 border border-slate-800'
+              : 'bg-surface text-slate-400 hover:text-slate-200 border border-slate-800'
           }`}
         >
           {category}
