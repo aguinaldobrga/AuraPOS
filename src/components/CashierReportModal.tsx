@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react';
 import { X, FileText, UserCheck, Store, Lock } from 'lucide-react';
 import { Sale } from '@/types';
 import { usePos } from '@/context/PosContext';
-import { generateDailyReportPDF } from '@/utils';
+import { generateDailyReportPDF, hashPin } from '@/utils';
 
 interface CashierReportModalProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
     onClose();
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!selectedUserId) {
@@ -42,8 +42,15 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
       return;
     }
 
-    // Validação estrita do PIN
-    if (selectedOperator.pin !== pin.trim()) {
+    const cleanPin = pin.trim();
+    const hashedInputPin = await hashPin(cleanPin);
+
+    // Validação estrita com suporte a hash SHA-256 e fallback para registros antigos
+    const isPinValid = 
+      selectedOperator.pin === hashedInputPin || 
+      selectedOperator.pin === cleanPin;
+
+    if (!isPinValid) {
       setError('PIN incorreto para o operador selecionado.');
       setPin('');
       return;
@@ -65,7 +72,8 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
       <div className="bg-[#161B22] border border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-lg transition-colors"
+          type="button"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-lg transition-colors cursor-pointer"
         >
           <X size={20} />
         </button>
@@ -150,13 +158,13 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 py-3 px-4 rounded-xl border border-slate-800 text-slate-300 font-medium hover:bg-slate-800/50 transition-colors"
+              className="flex-1 py-3 px-4 rounded-xl border border-slate-800 text-slate-300 font-medium hover:bg-slate-800/50 transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 px-4 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold transition-colors shadow-lg active:scale-95"
+              className="flex-1 py-3 px-4 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold transition-colors shadow-lg active:scale-95 cursor-pointer"
             >
               Confirmar e Gerar
             </button>
