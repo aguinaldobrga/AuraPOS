@@ -1,8 +1,10 @@
 import { useState, FormEvent } from 'react';
 import { usePos } from '@/context/PosContext';
 import { X, Lock, ShieldCheck, ShieldOff, Timer } from 'lucide-react';
-import { hashPin } from '@/utils';
+import { verifyPin } from '@/utils';
 import { usePinGuard } from '@/utils/pinGuard';
+
+console.log('🔥 AdminPinModal.tsx CARREGADO');
 
 interface AdminPinModalProps {
   isOpen: boolean;
@@ -30,6 +32,7 @@ export function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinModalProps
   };
 
   const handleSubmit = async (e: FormEvent) => {
+    console.log('🔥 handleSubmit FOI CHAMADO');
     e.preventDefault();
 
     // Bloquear submissão se o guard estiver ativo
@@ -44,12 +47,14 @@ export function AdminPinModal({ isOpen, onClose, onSuccess }: AdminPinModalProps
     }
 
     // Valida o PIN com hash SHA-256 (corrigindo comparação anterior sem hash)
+    // Valida o PIN usando PBKDF2 + salt armazenado no hash
     const cleanPin = pin.trim();
-    const hashedInputPin = await hashPin(cleanPin);
-
-    const isPinValid =
-      adminUser.pin === hashedInputPin ||
-      adminUser.pin === cleanPin; // fallback para PINs legados não hasheados
+      console.log('[DEBUG PIN]', {
+        pin: cleanPin,
+        storedPin: adminUser.pin,
+      });
+    const isPinValid = await verifyPin(cleanPin, adminUser.pin);
+      console.log('[DEBUG PIN RESULT]', isPinValid);
 
     if (!isPinValid) {
       guard.recordFailure();

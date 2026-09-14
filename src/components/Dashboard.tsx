@@ -1,15 +1,34 @@
 import { useState, useMemo } from 'react';
+
 import { usePos } from '@/context/PosContext';
+
 import { formatCurrency, formatTime } from '@/utils';
-import { XCircle, CheckCircle2, Download, UserCheck, Shield } from 'lucide-react';
+
+import {
+  XCircle,
+  CheckCircle2,
+  Download,
+  UserCheck,
+  Shield,
+} from 'lucide-react';
+
 import { CashierReportModal } from './CashierReportModal';
+import { AdminPinModal } from './AdminPinModal';
 
 export function Dashboard() {
   const { sales, cancelSale, currentUser, users } = usePos();
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [selectedOperatorFilter, setSelectedOperatorFilter] = useState<string>('TODOS');
 
-  // 1. Janela de Tempo: Início e fim do dia atual (00:00:00 até 23:59:59)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  const [selectedOperatorFilter, setSelectedOperatorFilter] =
+    useState<string>('TODOS');
+
+  const [isCancelAdminModalOpen, setIsCancelAdminModalOpen] =
+    useState(false);
+
+  const [saleToCancelId, setSaleToCancelId] = useState<string | null>(null);
+
+  // 1. Janela de Tempo: Início e fim do dia atual
   const todayStart = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -22,11 +41,13 @@ export function Dashboard() {
     return d;
   }, []);
 
-  // 2. Filtra as vendas de HOJE aplicando a Regra de Perfil (Role-Based Visibility)
+  // 2. Filtra as vendas de HOJE aplicando a Regra de Perfil
   const todaysSales = useMemo(() => {
-    return sales.filter(s => {
+    return sales.filter((s) => {
       const saleDate = new Date(s.timestamp);
+
       const isToday = saleDate >= todayStart && saleDate <= todayEnd;
+
       if (!isToday) return false;
 
       // OPERADOR: enxerga APENAS as suas próprias vendas
@@ -39,34 +60,87 @@ export function Dashboard() {
         return s.operatorId === selectedOperatorFilter;
       }
 
-      // ADMIN com filtro 'TODOS': enxerga a feira inteira
+      // ADMIN com filtro 'TODOS': enxerga todas as vendas
       return true;
     });
-  }, [sales, todayStart, todayEnd, currentUser, selectedOperatorFilter]);
+  }, [
+    sales,
+    todayStart,
+    todayEnd,
+    currentUser,
+    selectedOperatorFilter,
+  ]);
 
   // 3. Métricas Financeiras Consolidadas
-  const validSales = todaysSales.filter(s => s.status === 'APROVADA');
-  const totalPix = validSales.filter(s => s.method === 'PIX').reduce((acc, s) => acc + s.total, 0);
-  const totalCartao = validSales.filter(s => s.method === 'CARTAO').reduce((acc, s) => acc + s.total, 0);
-  const totalDinheiro = validSales.filter(s => s.method === 'DINHEIRO').reduce((acc, s) => acc + s.total, 0);
+  const validSales = todaysSales.filter(
+    (s) => s.status === 'APROVADA',
+  );
+
+  const totalPix = validSales
+    .filter((s) => s.method === 'PIX')
+    .reduce((acc, s) => acc + s.total, 0);
+
+  const totalCartao = validSales
+    .filter((s) => s.method === 'CARTAO')
+    .reduce((acc, s) => acc + s.total, 0);
+
+  const totalDinheiro = validSales
+    .filter((s) => s.method === 'DINHEIRO')
+    .reduce((acc, s) => acc + s.total, 0);
+
   const totalGeral = totalPix + totalCartao + totalDinheiro;
+
+  // 4. Inicia o processo de cancelamento
+  const handleCancelSale = (saleId: string) => {
+    // Segurança adicional: somente ADMIN pode iniciar o processo.
+    if (currentUser?.role !== 'ADMIN') {
+      return;
+    }
+
+    const confirmed = confirm(
+      'Tem certeza que deseja cancelar esta venda?',
+    );
+
+    if (!confirmed) return;
+
+    setSaleToCancelId(saleId);
+    setIsCancelAdminModalOpen(true);
+  };
+
+  // 5. Após validar o PIN do ADMIN, efetivamente cancela a venda
+  const handleAdminPinSuccess = async () => {
+    if (!saleToCancelId) return;
+
+    await cancelSale(saleToCancelId);
+
+    setSaleToCancelId(null);
+    setIsCancelAdminModalOpen(false);
+  };
 
   return (
     <div className="p-4 max-w-4xl mx-auto pb-20">
       {/* Cabeçalho da Tela */}
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-txt-primary">Fechamento do Dia</h2>
+          <h2 className="text-2xl font-bold text-txt-primary">
+            Fechamento do Dia
+          </h2>
+
           <div className="flex items-center gap-2 text-xs text-primary mt-1 font-medium">
-            {currentUser?.role === 'ADMIN' ? <Shield size={14} /> : <UserCheck size={14} />}
+            {currentUser?.role === 'ADMIN' ? (
+              <Shield size={14} />
+            ) : (
+              <UserCheck size={14} />
+            )}
+
             <span>
-              {currentUser?.role === 'ADMIN' 
-                ? 'Visão Geral do Administrador' 
+              {currentUser?.role === 'ADMIN'
+                ? 'Visão Geral do Administrador'
                 : `Operador: ${currentUser?.name || 'Caixa Local'}`}
             </span>
           </div>
         </div>
-        
+
         {todaysSales.length > 0 && (
           <button
             type="button"
@@ -85,13 +159,19 @@ export function Dashboard() {
           <span className="text-xs text-txt-secondary font-medium uppercase tracking-wider whitespace-nowrap">
             Filtrar Caixa:
           </span>
+
           <select
             value={selectedOperatorFilter}
-            onChange={e => setSelectedOperatorFilter(e.target.value)}
+            onChange={(e) =>
+              setSelectedOperatorFilter(e.target.value)
+            }
             className="w-full bg-main border border-line text-txt-primary rounded-lg py-1.5 px-3 text-sm focus:outline-none focus:border-primary cursor-pointer"
           >
-            <option value="TODOS">Todas as Bancas / Operadores</option>
-            {users.map(u => (
+            <option value="TODOS">
+              Todas as Bancas / Operadores
+            </option>
+
+            {users.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} ({u.role === 'ADMIN' ? 'Admin' : 'Operador'})
               </option>
@@ -99,76 +179,120 @@ export function Dashboard() {
           </select>
         </div>
       )}
-      
+
       {/* Cards de Métricas */}
       <div className="bg-surface p-6 rounded-2xl border border-line mb-6 text-center shadow-sm">
-        <div className="text-txt-secondary mb-2">Total Vendido Hoje</div>
-        <div className="text-4xl font-bold text-txt-primary">{formatCurrency(totalGeral)}</div>
+        <div className="text-txt-secondary mb-2">
+          Total Vendido Hoje
+        </div>
+
+        <div className="text-4xl font-bold text-txt-primary">
+          {formatCurrency(totalGeral)}
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="bg-surface p-4 rounded-xl border border-line text-center shadow-sm">
-          <div className="text-txt-secondary text-sm mb-1">Pix</div>
-          <div className="font-bold text-txt-primary">{formatCurrency(totalPix)}</div>
+          <div className="text-txt-secondary text-sm mb-1">
+            Pix
+          </div>
+
+          <div className="font-bold text-txt-primary">
+            {formatCurrency(totalPix)}
+          </div>
         </div>
+
         <div className="bg-surface p-4 rounded-xl border border-line text-center shadow-sm">
-          <div className="text-txt-secondary text-sm mb-1">Cartão</div>
-          <div className="font-bold text-txt-primary">{formatCurrency(totalCartao)}</div>
+          <div className="text-txt-secondary text-sm mb-1">
+            Cartão
+          </div>
+
+          <div className="font-bold text-txt-primary">
+            {formatCurrency(totalCartao)}
+          </div>
         </div>
+
         <div className="bg-surface p-4 rounded-xl border border-line text-center shadow-sm">
-          <div className="text-txt-secondary text-sm mb-1">Dinheiro</div>
-          <div className="font-bold text-txt-primary">{formatCurrency(totalDinheiro)}</div>
+          <div className="text-txt-secondary text-sm mb-1">
+            Dinheiro
+          </div>
+
+          <div className="font-bold text-txt-primary">
+            {formatCurrency(totalDinheiro)}
+          </div>
         </div>
       </div>
 
       {/* Histórico de Vendas */}
-      <h3 className="text-xl font-bold text-txt-primary mb-4">Histórico de Hoje</h3>
+      <h3 className="text-xl font-bold text-txt-primary mb-4">
+        Histórico de Hoje
+      </h3>
+
       <div className="space-y-4">
-        {todaysSales.map(sale => (
-          <div 
-            key={sale.id} 
+        {todaysSales.map((sale) => (
+          <div
+            key={sale.id}
             className={`p-4 rounded-xl border transition-all ${
-              sale.status === 'CANCELADA' 
-                ? 'border-rose-900/50 bg-rose-950/20 opacity-70' 
+              sale.status === 'CANCELADA'
+                ? 'border-rose-900/50 bg-rose-950/20 opacity-70'
                 : 'border-line bg-surface'
             }`}
           >
             <div className="flex justify-between items-start mb-2">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-txt-secondary text-sm">{formatTime(sale.timestamp)}</span>
+                  <span className="text-txt-secondary text-sm">
+                    {formatTime(sale.timestamp)}
+                  </span>
+
                   <span className="text-xs px-2 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
                     {sale.operatorName}
                   </span>
                 </div>
-                <div className="font-bold text-txt-primary mt-1">{formatCurrency(sale.total)}</div>
+
+                <div className="font-bold text-txt-primary mt-1">
+                  {formatCurrency(sale.total)}
+                </div>
+
                 <div className="text-sm text-txt-secondary mt-1 flex items-center gap-1">
                   {sale.status === 'APROVADA' ? (
-                    <CheckCircle2 size={14} className="text-success" />
+                    <CheckCircle2
+                      size={14}
+                      className="text-success"
+                    />
                   ) : (
-                    <XCircle size={14} className="text-rose-500" />
+                    <XCircle
+                      size={14}
+                      className="text-rose-500"
+                    />
                   )}
-                  <span>{sale.method} - {sale.status}</span>
+
+                  <span>
+                    {sale.method} - {sale.status}
+                  </span>
                 </div>
               </div>
 
-              {sale.status === 'APROVADA' && (
-                <button 
-                  type="button"
-                  onClick={() => {
-                    if (confirm('Tem certeza que deseja cancelar esta venda?')) {
-                      cancelSale(sale.id);
-                    }
-                  }}
-                  className="text-rose-500 hover:bg-rose-500/10 p-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-              )}
+              {/* SOMENTE ADMIN VÊ O BOTÃO DE CANCELAR */}
+              {currentUser?.role === 'ADMIN' &&
+                sale.status === 'APROVADA' && (
+                  <button
+                    type="button"
+                    onClick={() => handleCancelSale(sale.id)}
+                    className="text-rose-500 hover:bg-rose-500/10 p-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                )}
             </div>
 
             <div className="text-sm text-txt-secondary border-t border-line pt-2 mt-2">
-              {sale.items.map(item => `${item.quantity}x ${item.name}`).join(', ')}
+              {sale.items
+                .map(
+                  (item) =>
+                    `${item.quantity}x ${item.name}`,
+                )
+                .join(', ')}
             </div>
           </div>
         ))}
@@ -185,6 +309,16 @@ export function Dashboard() {
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         sales={todaysSales}
+      />
+
+      {/* Modal de confirmação do ADMIN para cancelamento */}
+      <AdminPinModal
+        isOpen={isCancelAdminModalOpen}
+        onClose={() => {
+          setIsCancelAdminModalOpen(false);
+          setSaleToCancelId(null);
+        }}
+        onSuccess={handleAdminPinSuccess}
       />
     </div>
   );

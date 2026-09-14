@@ -3,7 +3,7 @@ import { X, UserCheck, Store, Lock, CalendarDays, ShieldOff, Timer } from 'lucid
 import { Sale } from '@/types';
 import { usePos } from '@/context/PosContext';
 import { generateWeeklyReportPDF } from '@/utils/weeklyPdfGenerator';
-import { hashPin } from '@/utils';
+import { verifyPin } from '@/utils';
 import { usePinGuard } from '@/utils/pinGuard';
 
 interface WeeklyReportModalProps {
@@ -49,12 +49,8 @@ export function WeeklyReportModal({ isOpen, onClose, sales, weekLabel }: WeeklyR
       return;
     }
 
-    const cleanPin = pin.trim();
-    const hashedInputPin = await hashPin(cleanPin);
-
-    const isPinValid =
-      selectedOperator.pin === hashedInputPin ||
-      selectedOperator.pin === cleanPin;
+   const cleanPin = pin.trim();
+    const isPinValid = await verifyPin(cleanPin, selectedOperator.pin);
 
     if (!isPinValid) {
       guard.recordFailure();
@@ -63,8 +59,13 @@ export function WeeklyReportModal({ isOpen, onClose, sales, weekLabel }: WeeklyR
       if (attemptsLeft <= 0) {
         setError('Muitas tentativas incorretas. Aguarde o tempo de bloqueio.');
       } else {
-        setError(`PIN incorreto. ${attemptsLeft} tentativa${attemptsLeft !== 1 ? 's' : ''} restante${attemptsLeft !== 1 ? 's' : ''}.`);
+        setError(
+          `PIN incorreto. ${attemptsLeft} tentativa${
+            attemptsLeft !== 1 ? 's' : ''
+          } restante${attemptsLeft !== 1 ? 's' : ''}.`,
+        );
       }
+
       setPin('');
       return;
     }

@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Sale, User } from '@/types';
-import { formatCurrency, formatDateTime, formatDate } from '@/utils';
+import { formatCurrency, formatDateTime } from '@/utils';
 
 interface WeeklyReportOptions {
   weekLabel: string;

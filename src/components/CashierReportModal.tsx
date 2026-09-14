@@ -2,7 +2,8 @@ import { useState, FormEvent } from 'react';
 import { X, FileText, UserCheck, Store, Lock, ShieldOff, Timer } from 'lucide-react';
 import { Sale } from '@/types';
 import { usePos } from '@/context/PosContext';
-import { generateDailyReportPDF, hashPin } from '@/utils';
+import { generateDailyReportPDF} from '@/utils';
+import { verifyPin } from '@/utils';
 import { usePinGuard } from '@/utils/pinGuard';
 
 interface CashierReportModalProps {
@@ -48,12 +49,7 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
     }
 
     const cleanPin = pin.trim();
-    const hashedInputPin = await hashPin(cleanPin);
-
-    // Validação estrita com suporte a hash SHA-256 e fallback
-    const isPinValid = 
-      selectedOperator.pin === hashedInputPin || 
-      selectedOperator.pin === cleanPin;
+    const isPinValid = await verifyPin(cleanPin, selectedOperator.pin);
 
     if (!isPinValid) {
       guard.recordFailure();

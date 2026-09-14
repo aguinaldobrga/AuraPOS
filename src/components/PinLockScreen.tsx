@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { usePos } from '@/context/PosContext';
 import { Lock, Store, ArrowRight, AlertCircle, ShieldOff, Timer } from 'lucide-react';
-import { hashPin } from '@/utils';
+import { verifyPin } from '@/utils';
 import { usePinGuard } from '@/utils/pinGuard';
 
 interface PinLockScreenProps {
@@ -38,11 +38,11 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
       return;
     }
 
-    try {
-      // 4. Criptografa o PIN digitado para comparar com o hash salvo
-      const enteredPinHash = await hashPin(pin.trim());
+   try {
+  // 4. Verifica o PIN usando PBKDF2 + salt armazenado no hash
+      const isPinValid = await verifyPin(pin.trim(), user.pin);
 
-      if (user.pin !== enteredPinHash) {
+      if (!isPinValid) {
         guard.recordFailure();
 
         // Mensagem adaptada ao contexto de bloqueio
@@ -50,8 +50,13 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
         if (attemptsLeft <= 0) {
           setError('Muitas tentativas incorretas. Aguarde o tempo de bloqueio.');
         } else {
-          setError(`PIN incorreto. ${attemptsLeft} tentativa${attemptsLeft !== 1 ? 's' : ''} restante${attemptsLeft !== 1 ? 's' : ''}.`);
+          setError(
+            `PIN incorreto. ${attemptsLeft} tentativa${
+              attemptsLeft !== 1 ? 's' : ''
+            } restante${attemptsLeft !== 1 ? 's' : ''}.`,
+          );
         }
+
         setPin('');
         return;
       }
