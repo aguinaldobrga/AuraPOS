@@ -1,7 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { usePos } from '@/context/PosContext';
-import { Lock, Store, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, Store, ArrowRight, AlertCircle, ShieldOff, Timer } from 'lucide-react';
 import { hashPin } from '@/utils';
+import { usePinGuard } from '@/utils/pinGuard';
 
 interface PinLockScreenProps {
   onSuccess: () => void;
@@ -13,18 +14,24 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
+  // Proteção contra força bruta — vinculada ao usuário selecionado
+  const guard = usePinGuard(selectedUserId || '__no_user__');
+
   const activeUsers = users.filter(u => u.active);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // 1. Validação de seleção de operador
+    // 1. Bloquear submissão se o guard estiver ativo
+    if (guard.isLocked) return;
+
+    // 2. Validação de seleção de operador
     if (!selectedUserId) {
       setError('Selecione seu nome na lista.');
       return;
     }
 
-    // 2. Busca do operador ativo
+    // 3. Busca do operador ativo
     const user = activeUsers.find(u => u.id === selectedUserId);
     if (!user) {
       setError('Usuário não encontrado.');
@@ -32,16 +39,25 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
     }
 
     try {
-      // 3. Criptografa o PIN digitado para comparar com o hash salvo
+      // 4. Criptografa o PIN digitado para comparar com o hash salvo
       const enteredPinHash = await hashPin(pin.trim());
 
       if (user.pin !== enteredPinHash) {
-        setError('PIN incorreto. Tente novamente.');
+        guard.recordFailure();
+
+        // Mensagem adaptada ao contexto de bloqueio
+        const attemptsLeft = 5 - (guard.failureCount + 1);
+        if (attemptsLeft <= 0) {
+          setError('Muitas tentativas incorretas. Aguarde o tempo de bloqueio.');
+        } else {
+          setError(`PIN incorreto. ${attemptsLeft} tentativa${attemptsLeft !== 1 ? 's' : ''} restante${attemptsLeft !== 1 ? 's' : ''}.`);
+        }
         setPin('');
         return;
       }
 
-      // 4. Libera a sessão
+      // 5. Libera a sessão
+      guard.resetFailures();
       setCurrentUser(user);
       setError('');
       onSuccess();
@@ -74,6 +90,7 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
               value={selectedUserId}
               onChange={e => {
                 setSelectedUserId(e.target.value);
+                setPin('');
                 if (error) setError('');
               }}
               className="w-full bg-main border border-slate-800 rounded-xl py-3 px-4 text-slate-100 focus:outline-none focus:border-teal-500 transition-colors cursor-pointer"
@@ -99,18 +116,37 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
                 required
                 maxLength={6}
                 value={pin}
+                disabled={guard.isLocked}
                 onChange={e => {
                   setPin(e.target.value);
                   if (error) setError('');
                 }}
-                placeholder="••••"
-                className="w-full bg-main border border-slate-800 rounded-xl py-3.5 px-4 text-center text-2xl tracking-widest text-slate-100 focus:outline-none focus:border-teal-500 transition-colors"
+                placeholder="••••••"
+                className="w-full bg-main border border-slate-800 rounded-xl py-3.5 px-4 text-center text-2xl tracking-widest text-slate-100 focus:outline-none focus:border-teal-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
             </div>
           </div>
 
-          {error && (
+          {/* Painel de Bloqueio por Força Bruta */}
+          {guard.isLocked && (
+            <div className="flex flex-col items-center gap-2 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400">
+              <div className="flex items-center gap-2 font-semibold text-sm">
+                <ShieldOff size={18} />
+                <span>Acesso temporariamente bloqueado</span>
+              </div>
+              <div className="flex items-center gap-2 text-rose-300 text-2xl font-bold tabular-nums">
+                <Timer size={20} className="text-rose-400" />
+                <span>{guard.lockSecondsRemaining}s</span>
+              </div>
+              <p className="text-xs text-rose-400/70 text-center">
+                Muitas tentativas incorretas. Aguarde para tentar novamente.
+              </p>
+            </div>
+          )}
+
+          {/* Erro comum (sem bloqueio) */}
+          {error && !guard.isLocked && (
             <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs font-medium">
               <AlertCircle size={16} className="shrink-0" />
               <span>{error}</span>
@@ -119,7 +155,8 @@ export function PinLockScreen({ onSuccess }: PinLockScreenProps) {
 
           <button
             type="submit"
-            className="w-full py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 text-base"
+            disabled={guard.isLocked}
+            className="w-full py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 text-base disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
           >
             <span>Entrar no Sistema</span>
             <ArrowRight size={18} />

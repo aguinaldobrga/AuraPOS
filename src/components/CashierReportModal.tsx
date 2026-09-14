@@ -1,8 +1,9 @@
 import { useState, FormEvent } from 'react';
-import { X, FileText, UserCheck, Store, Lock } from 'lucide-react';
+import { X, FileText, UserCheck, Store, Lock, ShieldOff, Timer } from 'lucide-react';
 import { Sale } from '@/types';
 import { usePos } from '@/context/PosContext';
 import { generateDailyReportPDF, hashPin } from '@/utils';
+import { usePinGuard } from '@/utils/pinGuard';
 
 interface CashierReportModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
+  const guard = usePinGuard(selectedUserId || '__no_user__');
+
   if (!isOpen) return null;
 
   const activeUsers = users.filter(u => u.active);
@@ -29,6 +32,8 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (guard.isLocked) return;
 
     if (!selectedUserId) {
       setError('Selecione um operador na lista.');
@@ -51,12 +56,20 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
       selectedOperator.pin === cleanPin;
 
     if (!isPinValid) {
-      setError('PIN incorreto para o operador selecionado.');
+      guard.recordFailure();
+      
+      const attemptsLeft = 5 - (guard.failureCount + 1);
+      if (attemptsLeft <= 0) {
+        setError('Muitas tentativas incorretas. Aguarde o tempo de bloqueio.');
+      } else {
+        setError(`PIN incorreto. ${attemptsLeft} tentativa${attemptsLeft !== 1 ? 's' : ''} restante${attemptsLeft !== 1 ? 's' : ''}.`);
+      }
       setPin('');
       return;
     }
 
     setError('');
+    guard.resetFailures();
 
     // Dispara a geração do relatório em PDF
     generateDailyReportPDF(sales, {
@@ -143,15 +156,30 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
                 required
                 maxLength={6}
                 value={pin}
+                disabled={guard.isLocked}
                 onChange={e => {
                   setPin(e.target.value);
                   if (error) setError('');
                 }}
-                placeholder="••••"
-                className="w-full bg-main border border-line rounded-xl py-3 pl-10 pr-4 text-txt-primary tracking-widest focus:outline-none focus:border-primary transition-colors"
+                placeholder="••••••"
+                className="w-full bg-main border border-line rounded-xl py-3 pl-10 pr-4 text-txt-primary tracking-widest focus:outline-none focus:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
-            {error && <p className="text-xs text-rose-400 mt-1.5 font-medium">{error}</p>}
+            
+            {guard.isLocked && (
+              <div className="mt-3 flex flex-col items-center gap-1.5 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400">
+                <div className="flex items-center gap-2 font-semibold text-xs">
+                  <ShieldOff size={15} />
+                  <span>Acesso bloqueado temporariamente</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-rose-300 text-xl font-bold tabular-nums">
+                  <Timer size={16} className="text-rose-400" />
+                  <span>{guard.lockSecondsRemaining}s</span>
+                </div>
+              </div>
+            )}
+            
+            {error && !guard.isLocked && <p className="text-xs text-rose-400 mt-1.5 font-medium">{error}</p>}
           </div>
 
           <div className="pt-4 flex gap-3">
@@ -164,7 +192,8 @@ export function CashierReportModal({ isOpen, onClose, sales }: CashierReportModa
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 px-4 rounded-xl bg-primary text-black font-bold hover:bg-primary/90 transition-colors shadow-lg active:scale-95 cursor-pointer"
+              disabled={guard.isLocked}
+              className="flex-1 py-3 px-4 rounded-xl bg-primary text-black font-bold hover:bg-primary/90 transition-colors shadow-lg active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
             >
               Confirmar e Gerar
             </button>
