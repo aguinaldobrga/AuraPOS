@@ -3,7 +3,7 @@ import { PosProvider, usePos } from '@/context/PosContext';
 import { Header } from '@/components/Header';
 import { ProductGrid } from '@/components/ProductGrid';
 import { Cart } from '@/components/Cart';
-import { Dashboard } from '@/components/Dashboard';
+import { HistoryTabs } from '@/components/HistoryTabs';
 import { ProductAdmin } from '@/components/ProductAdmin';
 import { UserAdmin } from '@/components/UserAdmin';
 import { AdminPinModal } from '@/components/AdminPinModal';
@@ -101,9 +101,7 @@ function MainLayout() {
         )}
 
         {activeTab === 'history' && (
-          <div className="flex-1 overflow-y-auto w-full">
-            <Dashboard />
-          </div>
+          <HistoryTabs />
         )}
 
         {/* Área Administrativa Exclusiva para ADMIN */}
